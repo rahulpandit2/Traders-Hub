@@ -82,6 +82,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     }
 }
 
+// Handle subadmin status toggle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_status']) && $current_user['user_type'] === 'admin') {
+    $subadmin_id = $_POST['subadmin_id'] ?? '';
+    
+    if (!empty($subadmin_id)) {
+        // Get current status
+        $stmt = $pdo->prepare("SELECT status FROM admin_users WHERE id = ? AND user_type = 'subadmin'");
+        $stmt->execute([$subadmin_id]);
+        $current_status = $stmt->fetchColumn();
+        
+        // Toggle status
+        $new_status = $current_status === 'active' ? 'disabled' : 'active';
+        
+        try {
+            $stmt = $pdo->prepare("UPDATE admin_users SET status = ? WHERE id = ? AND user_type = 'subadmin'");
+            $stmt->execute([$new_status, $subadmin_id]);
+            
+            // Log the action
+            $stmt = $pdo->prepare("INSERT INTO activity_logs (user_id, action_type, description) VALUES (?, 'user_update', ?)");
+            $stmt->execute([$admin_id, "Changed subadmin status to: " . $new_status]);
+            
+            $message = 'Subadmin status updated successfully';
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
+        }
+    }
+}
+
 // Handle subadmin creation (admin only)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subadmin']) && $current_user['user_type'] === 'admin') {
     $subadmin_username = $_POST['subadmin_username'] ?? '';
@@ -115,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subadmin']) &&
 // Get list of subadmins if current user is admin
 $subadmins = [];
 if ($current_user['user_type'] === 'admin') {
-    $stmt = $pdo->prepare("SELECT id, username, created_at FROM admin_users WHERE user_type = 'subadmin'");
+    $stmt = $pdo->prepare("SELECT id, username, created_at, status FROM admin_users WHERE user_type = 'subadmin'");
     $stmt->execute();
     $subadmins = $stmt->fetchAll();
 }
@@ -229,6 +257,7 @@ if ($current_user['user_type'] === 'admin') {
                                                 <tr>
                                                     <th>Username</th>
                                                     <th>Created At</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -236,6 +265,15 @@ if ($current_user['user_type'] === 'admin') {
                                                     <tr>
                                                         <td><?php echo htmlspecialchars($subadmin['username']); ?></td>
                                                         <td><?php echo htmlspecialchars($subadmin['created_at']); ?></td>
+                                                        <td>
+                                                            <form method="POST" action="" class="d-inline">
+                                                                <input type="hidden" name="subadmin_id" value="<?php echo $subadmin['id']; ?>">
+                                                                <input type="hidden" name="action" value="toggle_status">
+                                                                <button type="submit" name="toggle_status" class="btn btn-sm <?php echo $subadmin['status'] === 'active' ? 'btn-danger' : 'btn-success'; ?>">
+                                                                    <?php echo $subadmin['status'] === 'active' ? 'Disable' : 'Enable'; ?>
+                                                                </button>
+                                                            </form>
+                                                        </td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             </tbody>

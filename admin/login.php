@@ -14,10 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_username'] = $user['username'];
-            header('Location: index.php');
-            exit;
+            if ($user['status'] === 'disabled') {
+                $error = 'Your account has been disabled. Please contact the administrator.';
+            } else {
+                $_SESSION['admin_id'] = $user['id'];
+                $_SESSION['admin_username'] = $user['username'];
+                header('Location: index.php');
+                exit;
+            }
         } else {
             $error = 'Invalid username or password';
         }
