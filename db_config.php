@@ -29,6 +29,8 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        user_type ENUM('admin', 'subadmin') DEFAULT 'admin',
+        status ENUM('active', 'disabled') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );");
     
