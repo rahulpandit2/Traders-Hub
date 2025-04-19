@@ -16,8 +16,8 @@ $stmt->execute([$file_id]);
 $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$file) {
-    header('HTTP/1.0 404 Not Found');
-    die('File not found');
+    header('Location: 404.php');
+    exit;
 }
 
 $file_path = $file['file_path'];
@@ -25,8 +25,8 @@ $original_name = $file['original_name'] ?: $file['file_name'];
 
 // Validate file existence
 if (!file_exists($file_path)) {
-    header('HTTP/1.0 404 Not Found');
-    die('File not found on server');
+    header('Location: 404.php');
+    exit;
 }
 
 // Check if view mode is requested
