@@ -35,13 +35,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_status'])) {
     }
 }
 
+// Pagination settings
+$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $per_page;
+
 // Filtering and sorting parameters
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 $date_filter = isset($_GET['date']) ? $_GET['date'] : '';
 $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'created_at';
 $sort_order = isset($_GET['order']) && strtolower($_GET['order']) === 'asc' ? 'ASC' : 'DESC';
 
-// Build the query
+// Get total count with filters
+$count_query = "SELECT COUNT(*) FROM contacts WHERE 1=1";
+$count_params = [];
+
+// Add filters to count query
+if ($status_filter !== '') {
+    $count_query .= " AND status = ?";
+    $count_params[] = $status_filter;
+}
+if ($date_filter !== '') {
+    $count_query .= " AND DATE(created_at) = ?";
+    $count_params[] = $date_filter;
+}
+
+// Execute count query
+$stmt = $pdo->prepare($count_query);
+$stmt->execute($count_params);
+$total_contacts = $stmt->fetchColumn();
+$total_pages = ceil($total_contacts / $per_page);
+
+// Build the main query
 $query = "SELECT * FROM contacts WHERE 1=1";
 $params = [];
 
@@ -58,11 +83,20 @@ if ($date_filter !== '') {
 // Add sorting
 $valid_sort_columns = ['created_at', 'subject', 'email', 'name', 'status', 'id'];
 $sort_by = in_array($sort_by, $valid_sort_columns) ? $sort_by : 'created_at';
-$query .= " ORDER BY $sort_by $sort_order";
+$query .= " ORDER BY $sort_by $sort_order LIMIT :limit OFFSET :offset";
 
 // Execute query
 $stmt = $pdo->prepare($query);
-$stmt->execute($params);
+
+// Bind all previous parameters
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key + 1, $value);
+}
+
+// Bind pagination parameters
+$stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $contacts = $stmt->fetchAll();
 ?>
 
@@ -75,9 +109,7 @@ $contacts = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="index.php">Admin Panel</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -141,6 +173,15 @@ $contacts = $stmt->fetchAll();
                             <option value="asc" <?php echo $sort_order === 'ASC' ? 'selected' : ''; ?>>Ascending</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Show per page</label>
+                        <select name="per_page" class="form-select">
+                            <option value="10" <?php echo $per_page === 10 ? 'selected' : ''; ?>>10</option>
+                            <option value="25" <?php echo $per_page === 25 ? 'selected' : ''; ?>>25</option>
+                            <option value="50" <?php echo $per_page === 50 ? 'selected' : ''; ?>>50</option>
+                            <option value="100" <?php echo $per_page === 100 ? 'selected' : ''; ?>>100</option>
+                        </select>
+                    </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary">Apply</button>
                     </div>
@@ -201,7 +242,32 @@ $contacts = $stmt->fetchAll();
                 </tbody>
             </table>
         </div>
-        <a href="index.php" class="btn btn-primary">Back to Dashboard</a>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <a href="index.php" class="btn btn-primary">Back to Dashboard</a>
+            <?php if ($total_pages > 1): ?>
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    <?php if ($page > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?php echo ($page - 1); ?>&per_page=<?php echo $per_page; ?>&status=<?php echo $status_filter; ?>&date=<?php echo $date_filter; ?>&sort=<?php echo $sort_by; ?>&order=<?php echo $sort_order; ?>">&laquo;</a>
+                    </li>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <li class="page-item <?php echo $page === $i ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>&per_page=<?php echo $per_page; ?>&status=<?php echo $status_filter; ?>&date=<?php echo $date_filter; ?>&sort=<?php echo $sort_by; ?>&order=<?php echo $sort_order; ?>"><?php echo $i; ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    
+                    <?php if ($page < $total_pages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<?php echo ($page + 1); ?>&per_page=<?php echo $per_page; ?>&status=<?php echo $status_filter; ?>&date=<?php echo $date_filter; ?>&sort=<?php echo $sort_by; ?>&order=<?php echo $sort_order; ?>">&raquo;</a>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

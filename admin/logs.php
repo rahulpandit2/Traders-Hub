@@ -21,7 +21,7 @@ if ($user['user_type'] !== 'admin') {
 
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$per_page = 20;
+$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 20;
 $offset = ($page - 1) * $per_page;
 
 // Get total count
@@ -47,7 +47,7 @@ $logs = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Logs - Traders Hub</title>
+    <title>Activity Logs - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -80,7 +80,25 @@ $logs = $stmt->fetchAll();
     </nav>
 
     <div class="container py-5">
-        <h2 class="mb-4">Activity Logs</h2>
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Activity Logs</h5>
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Show per page</label>
+                        <select name="per_page" class="form-select">
+                            <option value="10" <?php echo $per_page === 10 ? 'selected' : ''; ?>>10</option>
+                            <option value="20" <?php echo $per_page === 20 ? 'selected' : ''; ?>>20</option>
+                            <option value="50" <?php echo $per_page === 50 ? 'selected' : ''; ?>>50</option>
+                            <option value="100" <?php echo $per_page === 100 ? 'selected' : ''; ?>>100</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-body">
@@ -119,17 +137,32 @@ $logs = $stmt->fetchAll();
                     </table>
                 </div>
 
-                <?php if ($total_pages > 1): ?>
-                <nav aria-label="Activity log pagination">
-                    <ul class="pagination justify-content-center mb-0">
-                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                        <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                        </li>
-                        <?php endfor; ?>
-                    </ul>
-                </nav>
-                <?php endif; ?>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <a href="index.php" class="btn btn-primary">Back to Dashboard</a>
+                    <?php if ($total_pages > 1): ?>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <?php if ($page > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo ($page - 1); ?>&per_page=<?php echo $per_page; ?>">&laquo;</a>
+                            </li>
+                            <?php endif; ?>
+                            
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?php echo $page === $i ? 'active' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $i; ?>&per_page=<?php echo $per_page; ?>"><?php echo $i; ?></a>
+                            </li>
+                            <?php endfor; ?>
+                            
+                            <?php if ($page < $total_pages): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?php echo ($page + 1); ?>&per_page=<?php echo $per_page; ?>">&raquo;</a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
