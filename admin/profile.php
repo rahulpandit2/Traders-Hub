@@ -85,25 +85,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 // Handle subadmin status toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_status']) && $current_user['user_type'] === 'admin') {
     $subadmin_id = $_POST['subadmin_id'] ?? '';
-    
+
     if (!empty($subadmin_id)) {
-        // Get current status
-        $stmt = $pdo->prepare("SELECT status FROM admin_users WHERE id = ? AND user_type = 'subadmin'");
-        $stmt->execute([$subadmin_id]);
-        $current_status = $stmt->fetchColumn();
-        
-        // Toggle status
-        $new_status = $current_status === 'active' ? 'disabled' : 'active';
-        
         try {
-            $stmt = $pdo->prepare("UPDATE admin_users SET status = ? WHERE id = ? AND user_type = 'subadmin'");
-            $stmt->execute([$new_status, $subadmin_id]);
-            
-            // Log the action
-            $stmt = $pdo->prepare("INSERT INTO activity_logs (user_id, action_type, description) VALUES (?, 'user_update', ?)");
-            $stmt->execute([$admin_id, "Changed subadmin status to: " . $new_status]);
-            
-            $message = 'Subadmin status updated successfully';
+            // Get current status
+            $stmt = $pdo->prepare("SELECT status FROM admin_users WHERE id = ? AND user_type = 'subadmin'");
+            $stmt->execute([$subadmin_id]);
+            $current_status = $stmt->fetchColumn();
+
+            if ($current_status === false) {
+                $error = 'Subadmin not found';
+            } else {
+                // Toggle status
+                $new_status = ($current_status === 'active') ? 'disabled' : 'active';
+
+                $stmt = $pdo->prepare("UPDATE admin_users SET status = ? WHERE id = ?");
+                $stmt->execute([$new_status, $subadmin_id]);
+
+                // Log the action
+                $stmt = $pdo->prepare("INSERT INTO activity_logs (user_id, action_type, description) VALUES (?, 'user_update', ?)");
+                $stmt->execute([$admin_id, "Changed subadmin status to: " . $new_status]);
+
+                $message = 'Subadmin status updated successfully';
+
+                // Refresh the subadmins list
+                $stmt = $pdo->prepare("SELECT id, username, created_at, status FROM admin_users WHERE user_type = 'subadmin'");
+                $stmt->execute();
+                $subadmins = $stmt->fetchAll();
+            }
         } catch (PDOException $e) {
             $error = 'Database error: ' . $e->getMessage();
         }
@@ -268,7 +277,6 @@ if ($current_user['user_type'] === 'admin') {
                                                         <td>
                                                             <form method="POST" action="" class="d-inline">
                                                                 <input type="hidden" name="subadmin_id" value="<?php echo $subadmin['id']; ?>">
-                                                                <input type="hidden" name="action" value="toggle_status">
                                                                 <button type="submit" name="toggle_status" class="btn btn-sm <?php echo $subadmin['status'] === 'active' ? 'btn-danger' : 'btn-success'; ?>">
                                                                     <?php echo $subadmin['status'] === 'active' ? 'Disable' : 'Enable'; ?>
                                                                 </button>
