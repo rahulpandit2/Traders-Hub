@@ -1,6 +1,14 @@
 <?php
 require_once '../db_config.php';
 
+$allowGetRequest = false; // Set to false to prevent direct access via GET request
+
+// Redirect if GET requests are not allowed and this is a GET request
+if (!$allowGetRequest && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Location: login.php');
+    exit();
+}
+
 // Function to add a new admin user
 function addAdminUser($username, $password) {
     global $pdo;
