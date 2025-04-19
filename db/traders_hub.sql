@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
 
 -- Add user_type column to admin_users table
 ALTER TABLE `admin_users` ADD COLUMN `user_type` ENUM('admin', 'subadmin') DEFAULT 'admin' AFTER `username`;
+ALTER TABLE admin_users ADD COLUMN status ENUM('active', 'disabled') NOT NULL DEFAULT 'active';
 
 -- Create contacts table
 CREATE TABLE IF NOT EXISTS `contacts` (
