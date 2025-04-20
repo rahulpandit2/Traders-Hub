@@ -49,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                 $error = 'Please fill in both new password fields';
             } elseif ($new_password !== $confirm_password) {
                 $error = 'New passwords do not match';
+            } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]).{8,}$/', $new_password)) {
+                $error = 'Password does not meet complexity requirements';
             }
         }
 
@@ -132,6 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subadmin']) &&
         $stmt->execute([$subadmin_username]);
         if ($stmt->fetchColumn() > 0) {
             $error = 'Username already exists';
+        } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]).{8,}$/', $subadmin_password)) {
+            $error = 'Subadmin password does not meet complexity requirements';
         } else {
             try {
                 $stmt = $pdo->prepare("INSERT INTO admin_users (username, user_type, password) VALUES (?, 'subadmin', ?)");
@@ -188,12 +192,23 @@ if ($current_user['user_type'] === 'admin') {
                             <div class="mb-3">
                                 <label for="new_password" class="form-label">New Password</label>
                                 <input type="password" class="form-control" id="new_password" name="new_password">
+                                <div id="password-requirements" class="mt-2">
+                                    <p class="mb-1 small">Password must contain:</p>
+                                    <ul class="list-unstyled small ps-3">
+                                        <li id="length-check"><span class="text-danger">✖</span> At least 8 characters</li>
+                                        <li id="lowercase-check"><span class="text-danger">✖</span> At least 1 lowercase letter</li>
+                                        <li id="uppercase-check"><span class="text-danger">✖</span> At least 1 uppercase letter</li>
+                                        <li id="number-check"><span class="text-danger">✖</span> At least 1 number</li>
+                                        <li id="special-check"><span class="text-danger">✖</span> At least 1 special character</li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirm_password" class="form-label">Confirm New Password</label>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                <div id="password-match" class="mt-1 small"></div>
                             </div>
-                            <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
+                            <button type="submit" name="update_profile" class="btn btn-primary" id="update-profile-btn">Update Profile</button>
                         </form>
                     </div>
                 </div>
@@ -214,8 +229,18 @@ if ($current_user['user_type'] === 'admin') {
                                 <div class="mb-3">
                                     <label for="subadmin_password" class="form-label">Subadmin Password</label>
                                     <input type="password" class="form-control" id="subadmin_password" name="subadmin_password" required>
+                                    <div id="subadmin-password-requirements" class="mt-2">
+                                        <p class="mb-1 small">Password must contain:</p>
+                                        <ul class="list-unstyled small ps-3">
+                                            <li id="sa-length-check"><span class="text-danger">✖</span> At least 8 characters</li>
+                                            <li id="sa-lowercase-check"><span class="text-danger">✖</span> At least 1 lowercase letter</li>
+                                            <li id="sa-uppercase-check"><span class="text-danger">✖</span> At least 1 uppercase letter</li>
+                                            <li id="sa-number-check"><span class="text-danger">✖</span> At least 1 number</li>
+                                            <li id="sa-special-check"><span class="text-danger">✖</span> At least 1 special character</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <button type="submit" name="create_subadmin" class="btn btn-success">Create Subadmin</button>
+                                <button type="submit" name="create_subadmin" class="btn btn-success" id="create-subadmin-btn">Create Subadmin</button>
                             </form>
 
                             <?php if (!empty($subadmins)): ?>
@@ -258,6 +283,136 @@ if ($current_user['user_type'] === 'admin') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // User profile password validation
+        const newPasswordInput = document.getElementById('new_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const updateProfileBtn = document.getElementById('update-profile-btn');
+        const passwordMatch = document.getElementById('password-match');
+        
+        // Password requirement elements
+        const lengthCheck = document.getElementById('length-check');
+        const lowercaseCheck = document.getElementById('lowercase-check');
+        const uppercaseCheck = document.getElementById('uppercase-check');
+        const numberCheck = document.getElementById('number-check');
+        const specialCheck = document.getElementById('special-check');
+        
+        // Hide requirements by default if there's no input
+        if (newPasswordInput.value.length === 0) {
+            document.getElementById('password-requirements').style.display = 'none';
+        }
+        
+        newPasswordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Show requirements when user starts typing
+            document.getElementById('password-requirements').style.display = 'block';
+            
+            // Check length
+            if(password.length >= 8) {
+                lengthCheck.innerHTML = '<span class="text-success">✓</span> At least 8 characters';
+            } else {
+                lengthCheck.innerHTML = '<span class="text-danger">✖</span> At least 8 characters';
+            }
+            
+            // Check lowercase
+            if(/[a-z]/.test(password)) {
+                lowercaseCheck.innerHTML = '<span class="text-success">✓</span> At least 1 lowercase letter';
+            } else {
+                lowercaseCheck.innerHTML = '<span class="text-danger">✖</span> At least 1 lowercase letter';
+            }
+            
+            // Check uppercase
+            if(/[A-Z]/.test(password)) {
+                uppercaseCheck.innerHTML = '<span class="text-success">✓</span> At least 1 uppercase letter';
+            } else {
+                uppercaseCheck.innerHTML = '<span class="text-danger">✖</span> At least 1 uppercase letter';
+            }
+            
+            // Check number
+            if(/\d/.test(password)) {
+                numberCheck.innerHTML = '<span class="text-success">✓</span> At least 1 number';
+            } else {
+                numberCheck.innerHTML = '<span class="text-danger">✖</span> At least 1 number';
+            }
+            
+            // Check special character
+            if(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                specialCheck.innerHTML = '<span class="text-success">✓</span> At least 1 special character';
+            } else {
+                specialCheck.innerHTML = '<span class="text-danger">✖</span> At least 1 special character';
+            }
+            
+            // Check if passwords match if confirm is not empty
+            if(confirmPasswordInput.value) {
+                checkPasswordsMatch();
+            }
+        });
+        
+        confirmPasswordInput.addEventListener('input', checkPasswordsMatch);
+        
+        function checkPasswordsMatch() {
+            if(newPasswordInput.value === confirmPasswordInput.value) {
+                passwordMatch.innerHTML = '<span class="text-success">Passwords match</span>';
+            } else {
+                passwordMatch.innerHTML = '<span class="text-danger">Passwords do not match</span>';
+            }
+        }
+        
+        // Subadmin password validation (if admin user)
+        const subadminPasswordInput = document.getElementById('subadmin_password');
+        if (subadminPasswordInput) {
+            const createSubadminBtn = document.getElementById('create-subadmin-btn');
+            
+            // Hide requirements by default
+            document.getElementById('subadmin-password-requirements').style.display = 'none';
+            
+            subadminPasswordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Show requirements when user starts typing
+                document.getElementById('subadmin-password-requirements').style.display = 'block';
+                
+                // Check length
+                if(password.length >= 8) {
+                    document.getElementById('sa-length-check').innerHTML = '<span class="text-success">✓</span> At least 8 characters';
+                } else {
+                    document.getElementById('sa-length-check').innerHTML = '<span class="text-danger">✖</span> At least 8 characters';
+                }
+                
+                // Check lowercase
+                if(/[a-z]/.test(password)) {
+                    document.getElementById('sa-lowercase-check').innerHTML = '<span class="text-success">✓</span> At least 1 lowercase letter';
+                } else {
+                    document.getElementById('sa-lowercase-check').innerHTML = '<span class="text-danger">✖</span> At least 1 lowercase letter';
+                }
+                
+                // Check uppercase
+                if(/[A-Z]/.test(password)) {
+                    document.getElementById('sa-uppercase-check').innerHTML = '<span class="text-success">✓</span> At least 1 uppercase letter';
+                } else {
+                    document.getElementById('sa-uppercase-check').innerHTML = '<span class="text-danger">✖</span> At least 1 uppercase letter';
+                }
+                
+                // Check number
+                if(/\d/.test(password)) {
+                    document.getElementById('sa-number-check').innerHTML = '<span class="text-success">✓</span> At least 1 number';
+                } else {
+                    document.getElementById('sa-number-check').innerHTML = '<span class="text-danger">✖</span> At least 1 number';
+                }
+                
+                // Check special character
+                if(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                    document.getElementById('sa-special-check').innerHTML = '<span class="text-success">✓</span> At least 1 special character';
+                } else {
+                    document.getElementById('sa-special-check').innerHTML = '<span class="text-danger">✖</span> At least 1 special character';
+                }
+            });
+        }
+    });
+    </script>
 </body>
 
 </html>
