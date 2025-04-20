@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">Upload New File</h5>
-                <form method="POST" enctype="multipart/form-data" class="row g-3">
+                <form id="uploadForm" class="row g-3">
                     <div class="col-md-6">
                         <label for="file" class="form-label">File</label>
                         <input type="file" class="form-control" id="file" name="file" accept=".pdf,.xlsx,.xls" required>
@@ -208,6 +208,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
                     <div class="col-12">
                         <label for="file_name" class="form-label">Custom File Name (Optional)</label>
                         <input type="text" class="form-control" id="file_name" name="file_name" placeholder="Leave blank to use original filename">
+                    </div>
+                    <div class="col-12" id="progressDiv" style="display: none;">
+                        <div class="progress mb-3">
+                            <div id="uploadProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                        <button type="button" id="cancelUpload" class="btn btn-danger mb-3">Cancel Upload</button>
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Upload File</button>
@@ -324,5 +330,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/upload.js"></script>
 </body>
 </html>
