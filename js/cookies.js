@@ -41,22 +41,31 @@ function saveUserPreferences() {
 
 // Apply user preferences
 function applyUserPreferences() {
-    const sortBy = Cookies.get('user_sort') || 'upload_time';
-    const order = Cookies.get('user_order') || 'DESC';
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Only apply cookie preferences if no sorting/search parameters are present
+    if (!urlParams.has('sort') && !urlParams.has('order') && 
+        !urlParams.has('start_date') && !urlParams.has('file_name') && 
+        !urlParams.has('file_type')) {
+        
+        const sortBy = Cookies.get('user_sort') || 'upload_time';
+        const order = Cookies.get('user_order') || 'DESC';
+        
+        // Update the URL without reloading
+        urlParams.set('sort', sortBy);
+        urlParams.set('order', order);
+        window.history.replaceState({}, '', `?${urlParams.toString()}`);
+    }
+
+    // Apply preferences to form elements
     const perPage = Cookies.get('user_per_page') || '10';
     const fileType = Cookies.get('user_file_type') || '';
 
-    // Apply preferences to form elements
     if (document.querySelector('select[name="per_page"]')) {
         document.querySelector('select[name="per_page"]').value = perPage;
     }
     if (document.querySelector('select[name="file_type"]')) {
         document.querySelector('select[name="file_type"]').value = fileType;
-    }
-
-    // Update sorting links if needed
-    if (!window.location.search.includes('sort=')) {
-        window.location.search = `?sort=${sortBy}&order=${order}`;
     }
 }
 

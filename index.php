@@ -2,7 +2,11 @@
 require_once 'db_config.php';
 
 // Initialize search parameters
-$search = [];
+$searchParams = [];
+$searchConditions = [];
+$queryParams = [];
+
+// Sorting and pagination
 $orderBy = isset($_GET['sort']) ? $_GET['sort'] : (isset($_COOKIE['user_sort']) ? $_COOKIE['user_sort'] : 'upload_time');
 $order = isset($_GET['order']) ? $_GET['order'] : (isset($_COOKIE['user_order']) ? $_COOKIE['user_order'] : 'DESC');
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -10,40 +14,44 @@ $perPage = isset($_COOKIE['user_per_page']) ? (int)$_COOKIE['user_per_page'] : 1
 
 // Build search conditions
 if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
-    $search[] = "start_date = :start_date";
-}
-if (isset($_GET['file_name']) && !empty($_GET['file_name'])) {
-    $search[] = "(file_name LIKE :file_name OR original_name LIKE :file_name)";
-}
-if (isset($_GET['file_type']) && !empty($_GET['file_type'])) {
-    $search[] = "file_type = :file_type";
+    $searchConditions[] = "start_date = :start_date";
+    $queryParams[':start_date'] = $_GET['start_date'];
+    $searchParams['start_date'] = $_GET['start_date'];
 }
 
-// Build query
-$sql = "SELECT * FROM files";
-if (!empty($search)) {
-    $sql .= " WHERE " . implode(" AND ", $search);
+if (isset($_GET['file_name']) && !empty($_GET['file_name'])) {
+    $searchConditions[] = "(file_name LIKE :file_name OR original_name LIKE :original_name)";
+    $queryParams[':file_name'] = '%' . $_GET['file_name'] . '%';
+    $queryParams[':original_name'] = '%' . $_GET['file_name'] . '%';
+    $searchParams['file_name'] = $_GET['file_name'];
 }
+
+if (isset($_GET['file_type']) && !empty($_GET['file_type'])) {
+    $searchConditions[] = "file_type = :file_type";
+    $queryParams[':file_type'] = $_GET['file_type'];
+    $searchParams['file_type'] = $_GET['file_type'];
+}
+
+// Build base query
+$sql = "SELECT * FROM files";
+$countSql = "SELECT COUNT(*) FROM files";
+
+if (!empty($searchConditions)) {
+    $sql .= " WHERE " . implode(" AND ", $searchConditions);
+    $countSql .= " WHERE " . implode(" AND ", $searchConditions);
+}
+
+// Add sorting
+$validSortColumns = ['file_name', 'start_date', 'upload_time', 'file_type', 'file_size'];
+$orderBy = in_array($orderBy, $validSortColumns) ? $orderBy : 'upload_time';
+$order = in_array(strtoupper($order), ['ASC', 'DESC']) ? strtoupper($order) : 'DESC';
 $sql .= " ORDER BY $orderBy $order";
 
-// Count total records for pagination
-$countSql = "SELECT COUNT(*) FROM files";
-if (!empty($search)) {
-    $countSql .= " WHERE " . implode(" AND ", $search);
-}
+// Count total records
 $stmt = $pdo->prepare($countSql);
-
-// Bind search parameters
-if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
-    $stmt->bindValue(':start_date', $_GET['start_date']);
+foreach ($queryParams as $key => $value) {
+    $stmt->bindValue($key, $value);
 }
-if (isset($_GET['file_name']) && !empty($_GET['file_name'])) {
-    $stmt->bindValue(':file_name', '%' . $_GET['file_name'] . '%');
-}
-if (isset($_GET['file_type']) && !empty($_GET['file_type'])) {
-    $stmt->bindValue(':file_type', $_GET['file_type']);
-}
-
 $stmt->execute();
 $totalRecords = $stmt->fetchColumn();
 $totalPages = ceil($totalRecords / $perPage);
@@ -51,19 +59,13 @@ $totalPages = ceil($totalRecords / $perPage);
 // Get paginated results
 $sql .= " LIMIT :offset, :limit";
 $stmt = $pdo->prepare($sql);
+
+// Bind all parameters
+foreach ($queryParams as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
 $stmt->bindValue(':offset', ($page - 1) * $perPage, PDO::PARAM_INT);
 $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-
-// Bind search parameters again for main query
-if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
-    $stmt->bindValue(':start_date', $_GET['start_date']);
-}
-if (isset($_GET['file_name']) && !empty($_GET['file_name'])) {
-    $stmt->bindValue(':file_name', '%' . $_GET['file_name'] . '%');
-}
-if (isset($_GET['file_type']) && !empty($_GET['file_type'])) {
-    $stmt->bindValue(':file_type', $_GET['file_type']);
-}
 
 $stmt->execute();
 $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -79,14 +81,32 @@ function formatFileSize($bytes)
     }
     return $bytes . ' bytes';
 }
+
+function buildQueryString($params)
+{
+    // Remove empty parameters
+    $params = array_filter($params, function ($value) {
+        return $value !== '' && $value !== null;
+    });
+
+    // Always include these parameters if they exist in the original request
+    $importantParams = ['sort', 'order', 'page', 'start_date', 'file_name', 'file_type'];
+    foreach ($importantParams as $param) {
+        if (isset($_GET[$param]) && !isset($params[$param])) {
+            $params[$param] = $_GET[$param];
+        }
+    }
+
+    return '?' . http_build_query($params);
+}
 ?>
 
 <?php
 $page_title = 'TradersHub Automated Trading';
 require_once 'partials/header.php';
 ?>
-    <style>
-    </style>
+<style>
+</style>
 </head>
 
 <body class="bg-light">
@@ -126,28 +146,28 @@ require_once 'partials/header.php';
                     <tr>
                         <th>
                             File Name
-                            <a href="?sort=file_name&order=ASC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['start_date']) ? '&start_date=' . $_GET['start_date'] : ''; ?>" class="text-decoration-none">↑</a>
-                            <a href="?sort=file_name&order=DESC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['start_date']) ? '&start_date=' . $_GET['start_date'] : ''; ?>" class="text-decoration-none">↓</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_name', 'order' => 'ASC', 'page' => 1])); ?>" class="text-decoration-none">↑</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_name', 'order' => 'DESC', 'page' => 1])); ?>" class="text-decoration-none">↓</a>
                         </th>
                         <th>
                             Start Date
-                            <a href="?sort=start_date&order=ASC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↑</a>
-                            <a href="?sort=start_date&order=DESC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↓</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'start_date', 'order' => 'ASC', 'page' => 1])); ?>" class="text-decoration-none">↑</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'start_date', 'order' => 'DESC', 'page' => 1])); ?>" class="text-decoration-none">↓</a>
                         </th>
                         <th>
                             Upload Time
-                            <a href="?sort=upload_time&order=ASC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↑</a>
-                            <a href="?sort=upload_time&order=DESC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↓</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'upload_time', 'order' => 'ASC', 'page' => 1])); ?>" class="text-decoration-none">↑</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'upload_time', 'order' => 'DESC', 'page' => 1])); ?>" class="text-decoration-none">↓</a>
                         </th>
                         <th>
                             Type
-                            <a href="?sort=file_type&order=ASC<?php echo isset($_GET['start_date']) ? '&start_date=' . $_GET['start_date'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↑</a>
-                            <a href="?sort=file_type&order=DESC<?php echo isset($_GET['start_date']) ? '&start_date=' . $_GET['start_date'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↓</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_type', 'order' => 'ASC', 'page' => 1])); ?>" class="text-decoration-none">↑</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_type', 'order' => 'DESC', 'page' => 1])); ?>" class="text-decoration-none">↓</a>
                         </th>
                         <th>
                             Size
-                            <a href="?sort=file_size&order=ASC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↑</a>
-                            <a href="?sort=file_size&order=DESC<?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>" class="text-decoration-none">↓</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_size', 'order' => 'ASC', 'page' => 1])); ?>" class="text-decoration-none">↑</a>
+                            <a href="<?php echo buildQueryString(array_merge($searchParams, ['sort' => 'file_size', 'order' => 'DESC', 'page' => 1])); ?>" class="text-decoration-none">↓</a>
                         </th>
                         <th>Action</th>
                     </tr>
@@ -182,13 +202,61 @@ require_once 'partials/header.php';
         <?php if ($totalPages > 1): ?>
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <!-- First Page Link -->
+                    <li class="page-item <?php echo ($page == 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="<?php echo buildQueryString(array_merge($searchParams, ['page' => 1, 'sort' => $orderBy, 'order' => $order])); ?>">
+                            &laquo; First
+                        </a>
+                    </li>
+
+                    <!-- Previous Page Link -->
+                    <li class="page-item <?php echo ($page == 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="<?php echo buildQueryString(array_merge($searchParams, ['page' => $page - 1, 'sort' => $orderBy, 'order' => $order])); ?>">
+                            &lsaquo; Prev
+                        </a>
+                    </li>
+
+                    <!-- Page Number Links -->
+                    <?php
+                    // Calculate start and end page numbers for pagination range
+                    $startPage = max(1, $page - 2);
+                    $endPage = min($totalPages, $page + 2);
+
+                    // Show ellipsis if needed before first page
+                    if ($startPage > 1): ?>
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
                         <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $i; ?><?php echo isset($_GET['sort']) ? '&sort=' . $_GET['sort'] : ''; ?><?php echo isset($_GET['order']) ? '&order=' . $_GET['order'] : ''; ?><?php echo isset($_GET['file_type']) ? '&file_type=' . $_GET['file_type'] : ''; ?><?php echo isset($_GET['start_date']) ? '&start_date=' . $_GET['start_date'] : ''; ?><?php echo isset($_GET['file_name']) ? '&file_name=' . $_GET['file_name'] : ''; ?>">
+                            <a class="page-link" href="<?php echo buildQueryString(array_merge($searchParams, ['page' => $i, 'sort' => $orderBy, 'order' => $order])); ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
                     <?php endfor; ?>
+
+                    <!-- Show ellipsis if needed after last page -->
+                    <?php if ($endPage < $totalPages): ?>
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Next Page Link -->
+                    <li class="page-item <?php echo ($page == $totalPages) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="<?php echo buildQueryString(array_merge($searchParams, ['page' => $page + 1, 'sort' => $orderBy, 'order' => $order])); ?>">
+                            Next &rsaquo;
+                        </a>
+                    </li>
+
+                    <!-- Last Page Link -->
+                    <li class="page-item <?php echo ($page == $totalPages) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="<?php echo buildQueryString(array_merge($searchParams, ['page' => $totalPages, 'sort' => $orderBy, 'order' => $order])); ?>">
+                            Last &raquo;
+                        </a>
+                    </li>
                 </ul>
             </nav>
         <?php endif; ?>
