@@ -30,51 +30,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $page_title = 'Contact Us - TradersHub Automated Trading';
 require_once 'partials/header.php';
 ?>
+<style>
+    .contact-card {
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    .contact-card.animated {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .contact-option {
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .contact-option:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    .github-link {
+        background-color: #f6f8fa;
+        border: 1px solid #e1e4e8;
+        padding: 15px;
+        border-radius: 6px;
+    }
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+    }
+</style>
 
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h1 class="card-title text-center mb-4">Contact Us</h1>
-                        
-                        <?php if ($message): ?>
-                            <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
-                        <?php endif; ?>
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm contact-card" id="contact-card">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">Contact Us</h1>
+                    <p class="text-center mb-4">Choose your preferred contact method below</p>
+                    
+                    <?php if ($message): ?>
+                        <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
+                    <?php endif; ?>
 
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                        <?php endif; ?>
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <?php endif; ?>
 
-                        <form method="POST" class="needs-validation" novalidate>
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-option">
+                                <h5><i class="bi bi-envelope-fill text-primary"></i> Email Us Directly</h5>
+                                <p>Send your message to: <a href="mailto:rp1618938+tradershub@gmail.com">rp1618938+tradershub@gmail.com</a></p>
                             </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-option">
+                                <h5><i class="bi bi-chat-left-text-fill text-success"></i> Use This Form</h5>
+                                <p>Fill out the form below and we'll get back to you</p>
                             </div>
-                            <div class="mb-3">
-                                <label for="subject" class="form-label">Subject</label>
-                                <input type="text" class="form-control" id="subject" name="subject" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="message" class="form-label">Message</label>
-                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="consent" name="consent">
-                                <label class="form-check-label" for="consent">I give consent to receive emails from Traders Hub</label>
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Send Message</button>
-                            </div>
-                        </form>
+                        </div>
+                    </div>
+
+                    <form method="POST" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback">Please provide your name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">Please provide a valid email</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                            <div class="invalid-feedback">Please provide a subject</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                            <div class="invalid-feedback">Please write your message</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="consent" name="consent">
+                            <label class="form-check-label" for="consent">I give consent to receive emails from Traders Hub</label>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success btn-lg px-4">
+                                <i class="bi bi-send-fill"></i> Send Message
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="github-link mt-5">
+                        <h4><i class="bi bi-github"></i> Feedback & Bug Reports</h4>
+                        <p>Found a bug or have suggestions? Contribute on GitHub:</p>
+                        <a href="https://github.com/rahulpandit2" target="_blank" class="btn btn-dark">
+                            <i class="bi bi-github"></i> Visit GitHub Repository
+                        </a>
+                        <p class="mt-2 small">For technical issues or feature requests, please open an issue on GitHub.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    // Animation for contact card
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactCard = document.getElementById('contact-card');
+        setTimeout(() => {
+            contactCard.classList.add('animated');
+        }, 100);
+        
+        // Form validation
+        (function() {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms)
+                .forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+        })();
+    });
+</script>
 
 <?php require_once 'partials/footer.php'; ?>

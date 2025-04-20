@@ -119,7 +119,6 @@ require_once 'partials/header.php';
                         <h2 class="card-title fw-bold mb-4">📜 Our Policies</h2>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">• All deposits are locked for a minimum of 3 months</li>
-                            <li class="list-group-item">• Withdrawals can only be made after the 3-month period</li>
                             <li class="list-group-item">• Commission is taken from net profits only</li>
                             <li class="list-group-item">• Investors understand and accept market risks</li>
                             <li class="list-group-item">• TradersHub is not liable for any trading losses</li>
