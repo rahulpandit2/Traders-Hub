@@ -34,6 +34,15 @@ require_once 'partials/header.php';
             background-color: #f6f8fa;
             border: 1px solid #e1e4e8;
         }
+        .payment-method {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -99,6 +108,34 @@ require_once 'partials/header.php';
                                 <p>40% profit commission</p>
                             </div>
                         </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="fw-bold">How to Become an Investor:</h5>
+                            <ol>
+                                <li>Send us an email to <strong>rp1618938+tradershub@gmail.com</strong> with subject "Join Investors Program"</li>
+                                <li>Include your:
+                                    <ul>
+                                        <li>Full name</li>
+                                        <li>Phone number with country code</li>
+                                        <li>Preferred time for us to contact you</li>
+                                        <li>Your investment amount</li>
+                                    </ul>
+                                </li>
+                                <li>Alternatively, submit a contact request through our <a href="contact.php">contact form</a></li>
+                                <li>We'll contact you within 24 hours to complete the onboarding process</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="fw-bold">Accepted Payment Methods:</h5>
+                            <div>
+                                <span class="payment-method">ETH (Ethereum)</span>
+                                <span class="payment-method">INR (Bank Transfer)</span>
+                                <span class="payment-method">UPI (India)</span>
+                                <span class="payment-method">Exness Balance Transfer</span>
+                            </div>
+                        </div>
+                        
                         <a href="contact.php" class="btn btn-success mt-3">Contact Us to Invest</a>
                     </div>
                 </div>
