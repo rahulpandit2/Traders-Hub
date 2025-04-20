@@ -22,6 +22,20 @@ $stmt = $pdo->prepare("SELECT * FROM admin_users WHERE id = ?");
 $stmt->execute([$admin_id]);
 $current_user = $stmt->fetch();
 
+// AJAX endpoint for username availability check
+if (isset($_GET['check_username'])) {
+    $username = $_GET['check_username'];
+    $exclude_id = isset($_GET['exclude_id']) ? (int)$_GET['exclude_id'] : 0;
+    
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM admin_users WHERE username = ? AND id != ?");
+    $stmt->execute([$username, $exclude_id]);
+    $count = $stmt->fetchColumn();
+    
+    header('Content-Type: application/json');
+    echo json_encode(['available' => ($count == 0)]);
+    exit;
+}
+
 // Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $new_username = $_POST['username'] ?? '';
@@ -183,6 +197,7 @@ if ($current_user['user_type'] === 'admin') {
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($current_user['username']); ?>" required>
+                                <div id="username-feedback" class="form-text"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="current_password" class="form-label">Current Password</label>
@@ -225,6 +240,7 @@ if ($current_user['user_type'] === 'admin') {
                                 <div class="mb-3">
                                     <label for="subadmin_username" class="form-label">Subadmin Username</label>
                                     <input type="text" class="form-control" id="subadmin_username" name="subadmin_username" required>
+                                    <div id="subadmin-username-feedback" class="form-text"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="subadmin_password" class="form-label">Subadmin Password</label>
@@ -291,6 +307,52 @@ if ($current_user['user_type'] === 'admin') {
         const confirmPasswordInput = document.getElementById('confirm_password');
         const updateProfileBtn = document.getElementById('update-profile-btn');
         const passwordMatch = document.getElementById('password-match');
+        
+        // Username availability check variables
+        const usernameInput = document.getElementById('username');
+        const usernameFeedback = document.getElementById('username-feedback');
+        const originalUsername = '<?php echo htmlspecialchars($current_user['username']); ?>';
+        const adminId = <?php echo $admin_id; ?>;
+        
+        // Username availability check
+        let usernameTimeout;
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            
+            // Clear any previous timeout
+            clearTimeout(usernameTimeout);
+            
+            // Don't check if username is empty or unchanged
+            if (username === '') {
+                usernameFeedback.innerHTML = '';
+                return;
+            }
+            
+            if (username === originalUsername) {
+                usernameFeedback.innerHTML = '';
+                return;
+            }
+            
+            // Show checking message
+            usernameFeedback.innerHTML = '<span class="text-muted">Checking availability...</span>';
+            
+            // Set a timeout to reduce number of requests while typing
+            usernameTimeout = setTimeout(function() {
+                fetch(`?check_username=${encodeURIComponent(username)}&exclude_id=${adminId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.available) {
+                            usernameFeedback.innerHTML = '<span class="text-success">Username is available</span>';
+                        } else {
+                            usernameFeedback.innerHTML = '<span class="text-danger">Username is already taken</span>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        usernameFeedback.innerHTML = '<span class="text-danger">Error checking availability</span>';
+                    });
+            }, 500);
+        });
         
         // Password requirement elements
         const lengthCheck = document.getElementById('length-check');
@@ -361,13 +423,50 @@ if ($current_user['user_type'] === 'admin') {
             }
         }
         
-        // Subadmin password validation (if admin user)
+        // Subadmin section validation (if admin user)
         const subadminPasswordInput = document.getElementById('subadmin_password');
         if (subadminPasswordInput) {
+            const subadminUsernameInput = document.getElementById('subadmin_username');
+            const subadminUsernameFeedback = document.getElementById('subadmin-username-feedback');
             const createSubadminBtn = document.getElementById('create-subadmin-btn');
             
             // Hide requirements by default
             document.getElementById('subadmin-password-requirements').style.display = 'none';
+            
+            // Subadmin username availability check
+            let subadminUsernameTimeout;
+            subadminUsernameInput.addEventListener('input', function() {
+                const username = this.value.trim();
+                
+                // Clear any previous timeout
+                clearTimeout(subadminUsernameTimeout);
+                
+                // Don't check if username is empty
+                if (username === '') {
+                    subadminUsernameFeedback.innerHTML = '';
+                    return;
+                }
+                
+                // Show checking message
+                subadminUsernameFeedback.innerHTML = '<span class="text-muted">Checking availability...</span>';
+                
+                // Set a timeout to reduce number of requests while typing
+                subadminUsernameTimeout = setTimeout(function() {
+                    fetch(`?check_username=${encodeURIComponent(username)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.available) {
+                                subadminUsernameFeedback.innerHTML = '<span class="text-success">Username is available</span>';
+                            } else {
+                                subadminUsernameFeedback.innerHTML = '<span class="text-danger">Username is already taken</span>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking username:', error);
+                            subadminUsernameFeedback.innerHTML = '<span class="text-danger">Error checking availability</span>';
+                        });
+                }, 500);
+            });
             
             subadminPasswordInput.addEventListener('input', function() {
                 const password = this.value;
