@@ -149,7 +149,7 @@ require_once 'partials/header.php';
                                         <li>Your investment amount</li>
                                     </ul>
                                 </li>
-                                <li>Alternatively, submit a contact request through our <a href="contact.php">contact form</a></li>
+                                <li>Alternatively, submit a contact request through our <a href="contact.php" class="text-decoration-underline fw-bold">contact form</a></li>
                                 <li>We'll contact you within 24 hours to complete the onboarding process</li>
                             </ol>
                         </div>

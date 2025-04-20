@@ -36,26 +36,31 @@ require_once 'partials/header.php';
         opacity: 0;
         transform: translateY(20px);
     }
+
     .contact-card.animated {
         opacity: 1;
         transform: translateY(0);
     }
+
     .contact-option {
         border-left: 4px solid #28a745;
         padding: 15px;
         margin-bottom: 15px;
         transition: all 0.3s ease;
     }
+
     .contact-option:hover {
         background-color: #f8f9fa;
         transform: translateX(5px);
     }
+
     .github-link {
         background-color: #f6f8fa;
         border: 1px solid #e1e4e8;
         padding: 15px;
         border-radius: 6px;
     }
+
     .form-control:focus {
         border-color: #28a745;
         box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
@@ -69,7 +74,7 @@ require_once 'partials/header.php';
                 <div class="card-body">
                     <h1 class="card-title text-center mb-4">Contact Us</h1>
                     <p class="text-center mb-4">Choose your preferred contact method below</p>
-                    
+
                     <?php if ($message): ?>
                         <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
                     <?php endif; ?>
@@ -125,6 +130,21 @@ require_once 'partials/header.php';
                         </div>
                     </form>
 
+                    <div class="mt-5 p-4 border rounded shadow-sm bg-light">
+                        <h4><i class="bi bi-cash-coin text-warning"></i> Interested in Becoming an Investor?</h4>
+                        <p>At TradersHub, we are continuously expanding and welcoming strategic partners and investors to join our journey toward transforming automated trading. Whether you're an individual, an angel investor, or an institution, we offer transparent collaboration opportunities backed by real-time reporting and profit-sharing models.</p>
+                        <p><strong>How to Get Started:</strong></p>
+                        <ul>
+                            <li>Submit your interest through this contact form or email us directly.</li>
+                            <li>Our investment relations team will reach out to schedule a confidential discussion.</li>
+                            <li>Receive a detailed investor kit and explore partnership terms tailored for mutual growth.</li>
+                        </ul>
+                        <p>For a deeper understanding of our mission, history, and vision, please visit our
+                            <a href="about.php" class="text-decoration-underline fw-bold">About Us</a> page.
+                        </p>
+                    </div>
+
+
                     <div class="github-link mt-5">
                         <h4><i class="bi bi-github"></i> Feedback & Bug Reports</h4>
                         <p>Found a bug or have suggestions? Contribute on GitHub:</p>
@@ -146,7 +166,7 @@ require_once 'partials/header.php';
         setTimeout(() => {
             contactCard.classList.add('animated');
         }, 100);
-        
+
         // Form validation
         (function() {
             'use strict';
