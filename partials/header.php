@@ -27,7 +27,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </style>
 </head>
 <body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="margin-bottom: 20px;">
         <div class="container">
             <a class="navbar-brand" href="/Traders Hub/index.php">TradersHub Automated Trading</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
