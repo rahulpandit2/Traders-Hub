@@ -70,6 +70,7 @@ $total_pages = ceil($total_contacts / $per_page);
 // Build the main query
 $query = "SELECT * FROM contacts WHERE 1=1";
 $params = [];
+$paramIndex = 1;
 
 // Add filters
 if ($status_filter !== '') {
@@ -84,19 +85,20 @@ if ($date_filter !== '') {
 // Add sorting
 $valid_sort_columns = ['created_at', 'subject', 'email', 'name', 'status', 'id'];
 $sort_by = in_array($sort_by, $valid_sort_columns) ? $sort_by : 'created_at';
-$query .= " ORDER BY $sort_by $sort_order LIMIT :limit OFFSET :offset";
+$query .= " ORDER BY $sort_by $sort_order LIMIT ? OFFSET ?";
 
 // Execute query
 $stmt = $pdo->prepare($query);
 
-// Bind all previous parameters
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key + 1, $value);
+// Bind all parameters
+$paramIndex = 1;
+foreach ($params as $value) {
+    $stmt->bindValue($paramIndex++, $value);
 }
+$stmt->bindValue($paramIndex++, (int)$per_page, PDO::PARAM_INT);
+$stmt->bindValue($paramIndex, (int)$offset, PDO::PARAM_INT);
 
-// Bind pagination parameters
-$stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+// Execute with all parameters
 $stmt->execute();
 $contacts = $stmt->fetchAll();
 ?>
