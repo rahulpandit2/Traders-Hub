@@ -27,12 +27,19 @@ if (isset($_GET['check_username'])) {
     $username = $_GET['check_username'];
     $exclude_id = isset($_GET['exclude_id']) ? (int)$_GET['exclude_id'] : 0;
     
+    // Validate username format
+    if (!preg_match('/^[a-z0-9._]+$/', $username)) {
+        header('Content-Type: application/json');
+        echo json_encode(['available' => false, 'invalid_format' => true]);
+        exit;
+    }
+    
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM admin_users WHERE username = ? AND id != ?");
     $stmt->execute([$username, $exclude_id]);
     $count = $stmt->fetchColumn();
     
     header('Content-Type: application/json');
-    echo json_encode(['available' => ($count == 0)]);
+    echo json_encode(['available' => ($count == 0), 'invalid_format' => false]);
     exit;
 }
 
@@ -45,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 
     if (empty($new_username)) {
         $error = 'Username cannot be empty';
+    } elseif (!preg_match('/^[a-z0-9._]+$/', $new_username)) {
+        $error = 'Username can only contain lowercase letters, numbers, dots, and underscores';
     } elseif ($new_username !== $current_user['username']) {
         // Check if username already exists
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM admin_users WHERE username = ? AND id != ?");
@@ -142,6 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_subadmin']) &&
 
     if (empty($subadmin_username) || empty($subadmin_password)) {
         $error = 'Please fill in all fields';
+    } elseif (!preg_match('/^[a-z0-9._]+$/', $subadmin_username)) {
+        $error = 'Username can only contain lowercase letters, numbers, dots, and underscores';
     } else {
         // Check if username exists
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM admin_users WHERE username = ?");
@@ -241,6 +252,7 @@ if ($current_user['user_type'] === 'admin') {
                                     <label for="subadmin_username" class="form-label">Subadmin Username</label>
                                     <input type="text" class="form-control" id="subadmin_username" name="subadmin_username" required>
                                     <div id="subadmin-username-feedback" class="form-text"></div>
+                                    <small class="text-muted">Username can only contain lowercase letters, numbers, dots, and underscores</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="subadmin_password" class="form-label">Subadmin Password</label>
@@ -308,6 +320,12 @@ if ($current_user['user_type'] === 'admin') {
         const updateProfileBtn = document.getElementById('update-profile-btn');
         const passwordMatch = document.getElementById('password-match');
         
+        // Username validation function
+        function validateUsername(username) {
+            const regex = /^[a-z0-9._]+$/;
+            return regex.test(username);
+        }
+        
         // Username availability check variables
         const usernameInput = document.getElementById('username');
         const usernameFeedback = document.getElementById('username-feedback');
@@ -333,6 +351,12 @@ if ($current_user['user_type'] === 'admin') {
                 return;
             }
             
+            // Validate username format first
+            if (!validateUsername(username)) {
+                usernameFeedback.innerHTML = '<span class="text-danger">Username can only contain lowercase letters, numbers, dots, and underscores</span>';
+                return;
+            }
+            
             // Show checking message
             usernameFeedback.innerHTML = '<span class="text-muted">Checking availability...</span>';
             
@@ -341,7 +365,9 @@ if ($current_user['user_type'] === 'admin') {
                 fetch(`?check_username=${encodeURIComponent(username)}&exclude_id=${adminId}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.available) {
+                        if (data.invalid_format) {
+                            usernameFeedback.innerHTML = '<span class="text-danger">Username can only contain lowercase letters, numbers, dots, and underscores</span>';
+                        } else if (data.available) {
                             usernameFeedback.innerHTML = '<span class="text-success">Username is available</span>';
                         } else {
                             usernameFeedback.innerHTML = '<span class="text-danger">Username is already taken</span>';
@@ -447,6 +473,12 @@ if ($current_user['user_type'] === 'admin') {
                     return;
                 }
                 
+                // Validate username format first
+                if (!validateUsername(username)) {
+                    subadminUsernameFeedback.innerHTML = '<span class="text-danger">Username can only contain lowercase letters, numbers, dots, and underscores</span>';
+                    return;
+                }
+                
                 // Show checking message
                 subadminUsernameFeedback.innerHTML = '<span class="text-muted">Checking availability...</span>';
                 
@@ -455,7 +487,9 @@ if ($current_user['user_type'] === 'admin') {
                     fetch(`?check_username=${encodeURIComponent(username)}`)
                         .then(response => response.json())
                         .then(data => {
-                            if (data.available) {
+                            if (data.invalid_format) {
+                                subadminUsernameFeedback.innerHTML = '<span class="text-danger">Username can only contain lowercase letters, numbers, dots, and underscores</span>';
+                            } else if (data.available) {
                                 subadminUsernameFeedback.innerHTML = '<span class="text-success">Username is available</span>';
                             } else {
                                 subadminUsernameFeedback.innerHTML = '<span class="text-danger">Username is already taken</span>';
