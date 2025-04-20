@@ -9,6 +9,21 @@ require_once 'db_config.php';
     <title>About Us - TradersHub Automated Trading</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container.py-5 {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+        }
         .profit-highlight {
             background-color: #f8f9fa;
             border-left: 4px solid #28a745;

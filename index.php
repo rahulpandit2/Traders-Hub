@@ -3,10 +3,10 @@ require_once 'db_config.php';
 
 // Initialize search parameters
 $search = [];
-$orderBy = isset($_GET['sort']) ? $_GET['sort'] : 'upload_time';
-$order = isset($_GET['order']) ? $_GET['order'] : 'DESC';
+$orderBy = isset($_GET['sort']) ? $_GET['sort'] : (isset($_COOKIE['user_sort']) ? $_COOKIE['user_sort'] : 'upload_time');
+$order = isset($_GET['order']) ? $_GET['order'] : (isset($_COOKIE['user_order']) ? $_COOKIE['user_order'] : 'DESC');
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10;
+$perPage = isset($_COOKIE['user_per_page']) ? (int)$_COOKIE['user_per_page'] : 10;
 
 // Build search conditions
 if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
@@ -89,6 +89,31 @@ function formatFileSize($bytes)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TradersHub Automated Trading - Performance Reports</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container.py-5 {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
@@ -227,6 +252,7 @@ function formatFileSize($bytes)
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/cookies.js"></script>
 </body>
 
 </html>
