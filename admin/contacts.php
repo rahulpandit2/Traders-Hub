@@ -36,13 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_status'])) {
 }
 
 // Pagination settings
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
+// Get settings from cookies or defaults
+$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : (isset($_COOKIE['contact_per_page']) ? (int)$_COOKIE['contact_per_page'] : 10);
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $per_page;
 
 // Filtering and sorting parameters
-$status_filter = isset($_GET['status']) ? $_GET['status'] : '';
-$date_filter = isset($_GET['date']) ? $_GET['date'] : '';
+$status_filter = isset($_GET['status']) ? $_GET['status'] : (isset($_COOKIE['contact_status']) ? $_COOKIE['contact_status'] : '');
+$date_filter = isset($_GET['date']) ? $_GET['date'] : (isset($_COOKIE['contact_date']) ? $_COOKIE['contact_date'] : '');
 $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'created_at';
 $sort_order = isset($_GET['order']) && strtolower($_GET['order']) === 'asc' ? 'ASC' : 'DESC';
 
@@ -107,6 +108,7 @@ $contacts = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Requests - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/cookie-settings.js"></script>
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
@@ -183,7 +185,29 @@ $contacts = $stmt->fetchAll();
                         </select>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary">Apply</button>
+                        <button type="submit" class="btn btn-primary" onclick="saveContactSettings()">Apply</button>
+                    <script>
+                        function saveContactSettings() {
+                            const status = document.querySelector('select[name="status"]').value;
+                            const date = document.querySelector('input[name="date"]').value;
+                            const perPage = document.querySelector('select[name="per_page"]').value;
+                            
+                            CookieSettings.setCookie('contact_status', status);
+                            CookieSettings.setCookie('contact_date', date);
+                            CookieSettings.setCookie('contact_per_page', perPage);
+                        }
+
+                        // Set initial values from cookies
+                        window.onload = function() {
+                            const status = CookieSettings.getCookie('contact_status');
+                            const date = CookieSettings.getCookie('contact_date');
+                            const perPage = CookieSettings.getCookie('contact_per_page');
+
+                            if (status) document.querySelector('select[name="status"]').value = status;
+                            if (date) document.querySelector('input[name="date"]').value = date;
+                            if (perPage) document.querySelector('select[name="per_page"]').value = perPage;
+                        };
+                    </script>
                     </div>
                 </form>
             </div>

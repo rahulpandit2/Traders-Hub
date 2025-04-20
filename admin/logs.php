@@ -21,7 +21,7 @@ if ($user['user_type'] !== 'admin') {
 
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 20;
+$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : (isset($_COOKIE['logs_per_page']) ? (int)$_COOKIE['logs_per_page'] : 20);
 $offset = ($page - 1) * $per_page;
 
 // Get total count
@@ -49,6 +49,7 @@ $logs = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activity Logs - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/cookie-settings.js"></script>
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -94,9 +95,21 @@ $logs = $stmt->fetchAll();
                         </select>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary">Apply</button>
+                        <button type="submit" class="btn btn-primary" onclick="saveLogSettings()">Apply</button>
                     </div>
                 </form>
+                <script>
+                    function saveLogSettings() {
+                        const perPage = document.querySelector('select[name="per_page"]').value;
+                        CookieSettings.setCookie('logs_per_page', perPage);
+                    }
+
+                    // Set initial values from cookies
+                    window.onload = function() {
+                        const perPage = CookieSettings.getCookie('logs_per_page');
+                        if (perPage) document.querySelector('select[name="per_page"]').value = perPage;
+                    };
+                </script>
             </div>
         </div>
 
