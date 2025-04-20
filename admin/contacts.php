@@ -221,7 +221,11 @@ $contacts = $stmt->fetchAll();
                         <td><?php echo htmlspecialchars($contact['name']); ?></td>
                         <td><?php echo htmlspecialchars($contact['email']); ?></td>
                         <td><?php echo htmlspecialchars($contact['subject']); ?></td>
-                        <td><?php echo htmlspecialchars($contact['message']); ?></td>
+                        <td>
+                            <span class="message-preview" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#messageModal" data-message="<?php echo htmlspecialchars($contact['message']); ?>">
+                                <?php echo strlen($contact['message']) > 50 ? htmlspecialchars(substr($contact['message'], 0, 50)) . ' ...See more' : htmlspecialchars($contact['message']); ?>
+                            </span>
+                        </td>
                         <td><?php echo date('Y-m-d H:i', strtotime($contact['created_at'])); ?></td>
                         <td>
                             <span class="badge bg-<?php echo $contact['status'] === 'replied' ? 'success' : 'warning'; ?>">
@@ -270,6 +274,31 @@ $contacts = $stmt->fetchAll();
         </div>
     </div>
 
+    <!-- Message Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalLabel">Full Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalMessage"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageModal = document.getElementById('messageModal');
+            messageModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const message = button.getAttribute('data-message');
+                document.getElementById('modalMessage').textContent = message;
+            });
+        });
+    </script>
 </body>
 </html>
