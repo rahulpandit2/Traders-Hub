@@ -70,6 +70,250 @@ require_once 'partials/header.php';
         color: #28a745;
         cursor: pointer;
     }
+
+    /* Gravatar Card Styles */
+    .gravatar-hovercard {
+        position: relative;
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #101517;
+        box-sizing: border-box;
+    }
+
+    .gravatar-hovercard__inner {
+        position: relative;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .gravatar-hovercard__header {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .gravatar-hovercard__avatar-link {
+        display: block;
+        margin-right: 16px;
+    }
+
+    .gravatar-hovercard__avatar {
+        display: block;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .gravatar-hovercard__personal-info-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .gravatar-hovercard__name {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .gravatar-hovercard__social-links {
+        display: flex;
+        padding: 0 20px 20px;
+        gap: 8px;
+    }
+
+    .gravatar-hovercard__social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f5f5f5;
+        transition: background-color 0.2s ease;
+    }
+
+    .gravatar-hovercard__social-link:hover {
+        background-color: #e8e8e8;
+    }
+
+    .gravatar-hovercard__social-icon {
+        display: block;
+        border-radius: 50%;
+    }
+
+    .gravatar-hovercard__buttons {
+        padding: 0 20px 20px;
+    }
+
+    .gravatar-hovercard__button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        background-color: #f5f5f5;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .gravatar-hovercard__button:hover {
+        background-color: #e8e8e8;
+    }
+
+    .gravatar-hovercard__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+    }
+
+    .gravatar-hovercard__profile-url {
+        color: #666;
+        font-size: 12px;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
+    }
+
+    .gravatar-hovercard__profile-link {
+        color: #2563eb;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .gravatar-hovercard__drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gravatar-hovercard__drawer--open {
+        pointer-events: auto;
+        opacity: 1;
+    }
+
+    .gravatar-hovercard__drawer--closing {
+        opacity: 0;
+    }
+
+    .gravatar-hovercard__drawer-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .gravatar-hovercard__drawer-card {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 80vh;
+        background-color: #fff;
+        border-radius: 12px 12px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .gravatar-hovercard__drawer--open .gravatar-hovercard__drawer-card {
+        transform: translateY(0);
+    }
+
+    .gravatar-hovercard__drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .gravatar-hovercard__drawer-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .gravatar-hovercard__drawer-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin-right: -10px;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .gravatar-hovercard__drawer-items {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: calc(80vh - 73px);
+        overflow-y: auto;
+    }
+
+    .gravatar-hovercard__drawer-item {
+        display: flex;
+        padding: 16px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .gravatar-hovercard__drawer-item-icon {
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+
+    .gravatar-hovercard__drawer-item-info {
+        flex-grow: 1;
+    }
+
+    .gravatar-hovercard__drawer-item-label {
+        display: block;
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .gravatar-hovercard__drawer-item-text {
+        display: block;
+        font-size: 14px;
+    }
+
+    .gravatar-hovercard__drawer-item-link {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    .gravatar-hovercard__profile-color {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        z-index: -1;
+    }
 </style>
 </head>
 
@@ -105,6 +349,93 @@ require_once 'partials/header.php';
                     <div class="card-body">
                         <h2 class="card-title fw-bold mb-4">Who We Are</h2>
                         <p>TradersHub is a leading platform dedicated to automated trading strategies and market analysis. We showcase real, verifiable profits from our trading systems - all documented through our live YouTube trading sessions. Our transparent approach lets you see exactly how we generate consistent returns.</p>
+                    </div>
+                </div>
+
+                <!-- About Me Card -->
+                <div class="section-card card shadow-sm" id="about-me">
+                    <div class="card-body">
+                        <h2 class="card-title fw-bold mb-4">About Me</h2>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p>Hello! I'm Rahul Pandit, the founder and lead developer behind TradersHub. With years of experience in automated trading systems and market analysis, I've built this platform to share transparent, verifiable trading strategies with our community.</p>
+                                <p>My approach combines technical analysis with algorithmic trading to create consistent, profitable systems. All our trades are executed live on YouTube, providing full transparency to our investors and followers.</p>
+                                <p>When I'm not trading, I'm developing new tools and strategies to improve our systems, or helping our community members understand the markets better.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="gravatar-hovercard"><style></style>
+                                    <div class="gravatar-hovercard__inner">
+                                        <div class="gravatar-hovercard__header">
+                                            <a class="gravatar-hovercard__avatar-link" href="https://gravatar.com/rahulpandit2?utm_source=hovercard" target="_blank">
+                                                <img class="gravatar-hovercard__avatar" src="https://0.gravatar.com/avatar/c90b2f318f722561f300fd6775037d5abaebbd6d83b87b3ac5175f15952136bc?s=256" width="104" height="104" alt="Rahul Pandit">
+                                            </a>
+                                            <a class="gravatar-hovercard__personal-info-link" href="https://gravatar.com/rahulpandit2?utm_source=hovercard" target="_blank">
+                                                <h4 class="gravatar-hovercard__name">Rahul Pandit</h4>
+                                            </a>
+                                        </div>
+                                        <div class="gravatar-hovercard__social-links">
+                                            <a class="gravatar-hovercard__social-link" href="https://gravatar.com/rahulpandit2?utm_source=hovercard" target="_blank" data-service-name="gravatar">
+                                                <img class="gravatar-hovercard__social-icon" src="https://secure.gravatar.com/icons/gravatar.svg" width="32" height="32" alt="Gravatar">
+                                            </a>
+                                            <a class="gravatar-hovercard__social-link" href="https://github.com/rahulpandit2" target="_blank" data-service-name="github">
+                                                <img class="gravatar-hovercard__social-icon" src="https://s.gravatar.com/icons/github.svg" width="32" height="32" alt="GitHub">
+                                            </a>
+                                            <a class="gravatar-hovercard__social-link" href="https://www.youtube.com/channel/UC_z347VJdl3hXoPods6_3dQ" target="_blank" data-service-name="youtube">
+                                                <img class="gravatar-hovercard__social-icon" src="https://s.gravatar.com/icons/youtube.svg" width="32" height="32" alt="YouTube">
+                                            </a>
+                                        </div>
+                                        <div class="gravatar-hovercard__buttons">
+                                            <button class="gravatar-hovercard__button" data-target-drawer="contact">Contact</button>
+                                        </div>
+                                        <div class="gravatar-hovercard__footer">
+                                            <a class="gravatar-hovercard__profile-url" title="https://gravatar.com/rahulpandit2" href="https://gravatar.com/rahulpandit2?utm_source=profile-card" target="_blank">
+                                                gravatar.com/rahulpandit2
+                                            </a>
+                                            <a class="gravatar-hovercard__profile-link" href="https://gravatar.com/rahulpandit2?utm_source=profile-card" target="_blank">
+                                                View profile →
+                                            </a>
+                                        </div>
+                                        <div class="gravatar-hovercard__drawer" data-drawer-name="contact">
+                                            <div class="gravatar-hovercard__drawer-backdrop" data-target-drawer="contact"></div>
+                                            <div class="gravatar-hovercard__drawer-card">
+                                                <div class="gravatar-hovercard__drawer-header">
+                                                    <h2 class="gravatar-hovercard__drawer-title">Contact</h2>
+                                                    <button class="gravatar-hovercard__drawer-close" data-target-drawer="contact">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" fill="#101517"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <ul class="gravatar-hovercard__drawer-items">
+                                                    <li class="gravatar-hovercard__drawer-item">
+                                                        <img class="gravatar-hovercard__drawer-item-icon" width="24" height="24" src="https://secure.gravatar.com/icons/mail.svg" alt="">
+                                                        <div class="gravatar-hovercard__drawer-item-info">
+                                                            <span class="gravatar-hovercard__drawer-item-label">email</span>
+                                                            <span class="gravatar-hovercard__drawer-item-text"><a class="gravatar-hovercard__drawer-item-link" href="mailto:rp1618938+tradershub@gmail.com" target="_blank">rp1618938+tradershub@gmail.com</a></span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="gravatar-hovercard__drawer-item">
+                                                        <img class="gravatar-hovercard__drawer-item-icon" width="24" height="24" src="https://secure.gravatar.com/icons/envelope.svg" alt="">
+                                                        <div class="gravatar-hovercard__drawer-item-info">
+                                                            <span class="gravatar-hovercard__drawer-item-label">contact form</span>
+                                                            <span class="gravatar-hovercard__drawer-item-text"><a class="gravatar-hovercard__drawer-item-link" href="https://tradershub.infy.uk/contact.php" target="_blank">tradershub.infy.uk/contact.php</a></span>
+                                                        </div>
+                                                    </li>
+                                                    <li class="gravatar-hovercard__drawer-item">
+                                                        <img class="gravatar-hovercard__drawer-item-icon" width="24" height="24" src="https://secure.gravatar.com/icons/mobile-phone.svg" alt="">
+                                                        <div class="gravatar-hovercard__drawer-item-info">
+                                                            <span class="gravatar-hovercard__drawer-item-label">cell phone</span>
+                                                            <span class="gravatar-hovercard__drawer-item-text">8240468769</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="gravatar-hovercard__profile-color" style="background: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -253,6 +584,39 @@ require_once 'partials/header.php';
 
     <?php require_once 'partials/footer.php';?>
     <script>
+        // Gravatar Card Script
+        document.addEventListener('DOMContentLoaded', function() {
+            const hovercardInner = document.querySelector('.gravatar-hovercard__inner');
+
+            function openDrawer( target, container ) {
+                const selector = '.gravatar-hovercard__drawer[data-drawer-name="' + target.dataset.targetDrawer + '"]';
+                const drawer = container.querySelector( selector );
+                drawer?.classList.add( 'gravatar-hovercard__drawer--open' );
+            }
+
+            function closeDrawer( target, container ) {
+                const selector = '.gravatar-hovercard__drawer[data-drawer-name="' + target.dataset.targetDrawer + '"]';
+                const drawer = container.querySelector( selector );
+                drawer?.classList.add( 'gravatar-hovercard__drawer--closing' );
+                drawer?.classList.remove( 'gravatar-hovercard__drawer--open' );
+                
+                setTimeout( () => {
+                    drawer?.classList.remove( 'gravatar-hovercard__drawer--closing' );
+                }, 300 );
+            }
+
+            if (hovercardInner) {
+                hovercardInner.querySelectorAll( '.gravatar-hovercard__button' ).forEach( ( el ) => {
+                    el.addEventListener( 'click', () => openDrawer( el, hovercardInner ) );
+                } );
+                hovercardInner.querySelectorAll( '.gravatar-hovercard__drawer-close' ).forEach( ( el ) => {
+                    el.addEventListener( 'click', () => closeDrawer( el, hovercardInner ) );
+                } );
+                hovercardInner.querySelectorAll( '.gravatar-hovercard__drawer-backdrop' ).forEach( ( el ) => {
+                    el.addEventListener( 'click', () => closeDrawer( el, hovercardInner ) );
+                } );
+            }
+            
         // Scroll animation for section cards
         document.addEventListener('DOMContentLoaded', function() {
             const sectionCards = document.querySelectorAll('.section-card');
