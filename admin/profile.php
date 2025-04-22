@@ -309,8 +309,6 @@ if ($current_user['user_type'] === 'admin') {
             <?php endif; ?>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -546,6 +544,4 @@ if ($current_user['user_type'] === 'admin') {
         }
     });
     </script>
-</body>
-
-</html>
+<?php require_once 'partials/footer.php'; ?>

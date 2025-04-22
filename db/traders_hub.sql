@@ -91,6 +91,24 @@ CREATE TABLE `files` (
   `file_path` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `saved_data`
+--
+CREATE TABLE `saved_data` (
+  `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `title` varchar(80) NOT NULL,
+  `terminal_type` ENUM('MT4', 'MT5', 'webterminal') NOT NULL DEFAULT 'MT4',
+  `server` varchar(255) NOT NULL,
+  `account_number` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `short_note` text,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
