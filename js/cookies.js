@@ -75,7 +75,7 @@ function showCookieConsent() {
         const banner = document.createElement('div');
         banner.className = 'cookie-banner';
         banner.innerHTML = `
-            <div class="alert alert-info alert-dismissible fade show position-fixed bottom-0 start-50 translate-middle-x mb-0" role="alert">
+            <div class="cookie-alert alert alert-info alert-dismissible fade show position-fixed bottom-0 start-50 translate-middle-x mb-0" role="alert">
                 <strong>Cookie Notice:</strong> We use cookies to enhance your experience. By continuing to use this site, you agree to our use of cookies.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

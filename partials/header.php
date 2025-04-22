@@ -34,7 +34,7 @@ $canonical_url = "https://tradershub.com" . $_SERVER['REQUEST_URI'];
     <title><?php echo isset($page_title) ? "$page_title | TradersHub Automated Trading" : 'TradersHub - Automated Trading Platform'; ?></title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/svg" href="assets/icons/TradersHub favicon.svg">
     
     <!-- Schema Markup -->
     <script type="application/ld+json">
@@ -57,6 +57,9 @@ $canonical_url = "https://tradershub.com" . $_SERVER['REQUEST_URI'];
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
     <style>
+        .cookie-alert {
+            z-index: 99999999;
+        }
         html, body {
             height: 100%;
             margin: 0;
