@@ -98,6 +98,16 @@ require_once 'partials/header.php';
         display: inline-block;
         margin: 0 10px;
     }
+
+    @media screen and (max-width: 768px) {
+        .profile-avatar,
+       .profile-picture {
+            width: 70px;
+            height: 70px;
+            margin: 0 5px;
+            border: 2px solid white;
+        }
+    }
     
     .profile-name {
         margin-top: 15px;
@@ -218,7 +228,7 @@ require_once 'partials/header.php';
                             <div class="profile-header">
                                 <img src="https://0.gravatar.com/avatar/c90b2f318f722561f300fd6775037d5abaebbd6d83b87b3ac5175f15952136bc?s=256" alt="Rahul Pandit" class="profile-avatar">
                                 <i class="fa-solid fa-link"></i>
-                                <img src="assets/images/profile-picture.jpg" class="profile-picture">
+                                <img src="assets/images/profile-picture-compressed.jpg" class="profile-picture">
                                 <h4 class="profile-name">Rahul Pandit</h4>
                                 <p class="mb-0">Trading Expert & Algorithm Developer</p>
                             </div>
