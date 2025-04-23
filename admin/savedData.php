@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!empty($_POST['password'])) {
                     $sql .= ", password = ?";
-                    $params[] = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                    $params[] = $_POST['password']; // Remove password_hash
                 }
 
                 $sql .= ", updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?";
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['terminal_type'],
                 $_POST['server'],
                 $_POST['account_number'],
-                password_hash($_POST['password'], PASSWORD_DEFAULT),
+                $_POST['password'], // Remove password_hash
                 $_POST['short_note'] ?? null
             ]);
 
@@ -258,7 +258,7 @@ require_once 'partials/header.php';
                         <div class="col-md-6 mb-3">
                             <label for="terminal_type" class="form-label">Terminal Type</label>
                             <select class="form-select" id="terminal_type" name="terminal_type" required>
-                                <option value="">Select Terminal Type</option>
+                                <option value="" selected disabled>Select Terminal Type</option>
                                 <option value="MT4">MT4</option>
                                 <option value="MT5">MT5</option>
                                 <option value="webterminal">Web Terminal</option>
@@ -316,6 +316,16 @@ require_once 'partials/header.php';
                                 <td><?php echo date('Y-m-d H:i', strtotime($data['created_at'])); ?></td>
                                 <td>
                                     <!-- In the table rows, ensure data attributes are correctly named -->
+                                    <button class="btn btn-sm btn-info view-btn"
+                                        data-id="<?php echo $data['id']; ?>"
+                                        data-title="<?php echo htmlspecialchars($data['title']); ?>"
+                                        data-terminal-type="<?php echo htmlspecialchars($data['terminal_type']); ?>"
+                                        data-server="<?php echo htmlspecialchars($data['server']); ?>"
+                                        data-account-number="<?php echo htmlspecialchars($data['account_number']); ?>"
+                                        data-password="<?php echo htmlspecialchars($data['password']); ?>"
+                                        data-short-note="<?php echo htmlspecialchars($data['short_note'] ?? ''); ?>">
+                                        View
+                                    </button>
                                     <button class="btn btn-sm btn-primary edit-btn"
                                         data-id="<?php echo $data['id']; ?>"
                                         data-title="<?php echo htmlspecialchars($data['title']); ?>"
@@ -335,6 +345,52 @@ require_once 'partials/header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- View Modal -->
+            <div class="modal fade" id="viewModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">View Saved Data</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <p id="view_title" class="form-control-static"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Terminal Type</label>
+                                <p id="view_terminal_type" class="form-control-static"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Server</label>
+                                <p id="view_server" class="form-control-static"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Account Number</label>
+                                <p id="view_account_number" class="form-control-static"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="view_password" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Short Note</label>
+                                <p id="view_short_note" class="form-control-static"></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Edit Modal -->
@@ -475,6 +531,39 @@ require_once 'partials/header.php';
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
         });
     });
+
+    // View button handler
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const data = this.dataset;
+            document.getElementById('view_title').textContent = data.title;
+            document.getElementById('view_terminal_type').textContent = data.terminalType;
+            document.getElementById('view_server').textContent = data.server;
+            document.getElementById('view_account_number').textContent = data.accountNumber;
+            document.getElementById('view_password').value = data.password;
+            document.getElementById('view_short_note').textContent = data.shortNote;
+            
+            const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+            viewModal.show();
+        });
+    });
+
+    // Password toggle functionality
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('view_password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
 </script>
+</div>
 
 <?php require_once 'partials/footer.php'; ?>
