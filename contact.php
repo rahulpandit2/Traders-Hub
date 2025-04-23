@@ -17,9 +17,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please enter a valid email address';
     } else {
         try {
+            // First, insert into database
             $stmt = $pdo->prepare("INSERT INTO contacts (name, email, subject, message, email_consent, status) VALUES (?, ?, ?, ?, ?, 'pending')");
             $stmt->execute([$name, $email, $subject, $messageText, $consent]);
-            $message = 'Your message has been sent successfully!';
+            
+            // Then, send email using cURL
+            $postData = http_build_query([
+                'name' => $name,
+                'email' => $email,
+                'message' => $messageText,
+                'subject' => $subject
+            ]);
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://tradershub.infy.uk/send_email.php');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode === 200) {
+                $message = 'Your message has been sent successfully!';
+            } else {
+                // Message still saved to database even if email fails
+                $message = 'Your message was saved but email notification failed. We will process it shortly.';
+            }
         } catch (PDOException $e) {
             $error = 'An error occurred while sending your message. Please try again later.';
         }
