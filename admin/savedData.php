@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->fetchColumn() == 0) {
                     throw new Exception("Record not found or access denied");
                 }
-                
+
                 // Remove the incorrect query that was causing the error
                 // Delete the record
                 $stmt = $pdo->prepare("DELETE FROM saved_data WHERE id = ? AND user_id = ?");
@@ -202,7 +202,8 @@ require_once 'partials/header.php';
                     <input type="text" name="search" class="form-control" placeholder="Search by title or account number" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
                 </div>
                 <div class="col-md-3">
-                    <select name="terminal_type" id="terminal_type" class="form-control">
+                    <!-- In the search form -->
+                    <select name="terminal_type" id="search_terminal_type" class="form-control">
                         <option value="">All Terminal Types</option>
                         <option value="MT4" <?php echo isset($_GET['terminal_type']) && $_GET['terminal_type'] === 'MT4' ? 'selected' : ''; ?>>MT4</option>
                         <option value="MT5" <?php echo isset($_GET['terminal_type']) && $_GET['terminal_type'] === 'MT5' ? 'selected' : ''; ?>>MT5</option>
@@ -346,7 +347,7 @@ require_once 'partials/header.php';
                     </tbody>
                 </table>
             </div>
-
+            
             <!-- View Modal -->
             <div class="modal fade" id="viewModal" tabindex="-1">
                 <div class="modal-dialog">
@@ -358,19 +359,39 @@ require_once 'partials/header.php';
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label">Title</label>
-                                <p id="view_title" class="form-control-static"></p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="view_title" readonly>
+                                    <button class="btn btn-outline-secondary copy-btn" type="button" data-copy="view_title">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Terminal Type</label>
-                                <p id="view_terminal_type" class="form-control-static"></p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="view_terminal_type" readonly>
+                                    <button class="btn btn-outline-secondary copy-btn" type="button" data-copy="view_terminal_type">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Server</label>
-                                <p id="view_server" class="form-control-static"></p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="view_server" readonly>
+                                    <button class="btn btn-outline-secondary copy-btn" type="button" data-copy="view_server">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Account Number</label>
-                                <p id="view_account_number" class="form-control-static"></p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="view_account_number" readonly>
+                                    <button class="btn btn-outline-secondary copy-btn" type="button" data-copy="view_account_number">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
@@ -378,6 +399,9 @@ require_once 'partials/header.php';
                                     <input type="password" class="form-control" id="view_password" readonly>
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                         <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary copy-btn" type="button" data-copy="view_password">
+                                        <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                             </div>
@@ -392,7 +416,7 @@ require_once 'partials/header.php';
                     </div>
                 </div>
             </div>
-
+            
             <!-- Edit Modal -->
             <div class="modal fade" id="editModal" tabindex="-1">
                 <div class="modal-dialog">
@@ -443,19 +467,20 @@ require_once 'partials/header.php';
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
+            <!-- Delete Modal -->
             <div class="modal fade" id="deleteModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Confirm Delete</h5>
+                            <h5 class="modal-title">Delete Confirmation</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            Are you sure you want to delete "<span id="delete_title"></span>"?
+                            <p>Are you sure you want to delete "<span id="delete_title"></span>"?</p>
+                            <p class="text-danger">This action cannot be undone.</p>
                         </div>
                         <div class="modal-footer">
-                            <form method="POST">
+                            <form method="POST" action="">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" id="delete_id">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -479,35 +504,31 @@ require_once 'partials/header.php';
                     </ul>
                 </nav>
             <?php endif; ?>
-        </div>
-    </div>
+</div>
+</div>
 </div>
 
 <script>
-    // terminal_type change event listener
-    document.getElementById('terminal_type').addEventListener('change', function() {
-        const terminalType = this.value;
-        const serverSelect = document.querySelector('select[name="server"]');
-        serverSelect.innerHTML = '<option value="">All Servers</option>'; // Reset options
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
 
-        if (terminalType) {
-            fetch(`savedData.php?ajax=get_servers&terminal_type=${terminalType}`, {
-                    credentials: 'include' // Include session cookies
-                })
-                .then(response => response.json())
-                .then(servers => {
-                    servers.forEach(server => {
-                        const option = document.createElement('option');
-                        option.value = server;
-                        option.textContent = server;
-                        serverSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching servers:', error));
-        }
+    // View button click handler
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const data = this.dataset;
+            document.getElementById('view_title').value = data.title;
+            document.getElementById('view_terminal_type').value = data.terminalType;
+            document.getElementById('view_server').value = data.server;
+            document.getElementById('view_account_number').value = data.accountNumber;
+            document.getElementById('view_password').value = data.password;
+            document.getElementById('view_short_note').textContent = data.shortNote;
+            viewModal.show();
+        });
     });
 
-    // Edit button handler
+    // Edit button click handler
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', function() {
             const data = this.dataset;
@@ -516,35 +537,36 @@ require_once 'partials/header.php';
             document.getElementById('edit_terminal_type').value = data.terminalType;
             document.getElementById('edit_server').value = data.server;
             document.getElementById('edit_account_number').value = data.accountNumber;
-            document.getElementById('edit_short_note').value = data.shortNote;
-            document.getElementById('edit_password').value = ''; // Clear password field
-            new bootstrap.Modal(document.getElementById('editModal')).show();
+            document.getElementById('edit_short_note').value = data.shortNote || '';
+            editModal.show();
         });
     });
 
-    // Delete button handler
-    document.querySelectorAll('.delete-btn').forEach(button => {
+    // Copy button functionality
+    document.querySelectorAll('.copy-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const data = this.dataset;
-            document.getElementById('delete_id').value = data.id;
-            document.getElementById('delete_title').textContent = data.title;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        });
-    });
-
-    // View button handler
-    document.querySelectorAll('.view-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const data = this.dataset;
-            document.getElementById('view_title').textContent = data.title;
-            document.getElementById('view_terminal_type').textContent = data.terminalType;
-            document.getElementById('view_server').textContent = data.server;
-            document.getElementById('view_account_number').textContent = data.accountNumber;
-            document.getElementById('view_password').value = data.password;
-            document.getElementById('view_short_note').textContent = data.shortNote;
+            const targetId = this.getAttribute('data-copy');
+            const targetElement = document.getElementById(targetId);
+            const originalType = targetElement.type;
             
-            const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-            viewModal.show();
+            if(originalType === 'password') {
+                targetElement.type = 'text';
+            }
+            
+            targetElement.select();
+            document.execCommand('copy');
+            
+            if(originalType === 'password') {
+                targetElement.type = 'password';
+            }
+            
+            const icon = this.querySelector('i');
+            icon.classList.remove('fa-copy');
+            icon.classList.add('fa-check');
+            setTimeout(() => {
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-copy');
+            }, 1500);
         });
     });
 
@@ -563,6 +585,18 @@ require_once 'partials/header.php';
             icon.classList.add('fa-eye');
         }
     });
+});
+
+// Delete button click handler
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const data = this.dataset;
+        document.getElementById('delete_id').value = data.id;
+        document.getElementById('delete_title').textContent = data.title;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    });
+});
 </script>
 </div>
 
